@@ -21,14 +21,21 @@ function main(): void {
   if (chars < 1 || chars > 200 || CONFESSION.trim().length === 0) {
     throw new Error(`confession is ${chars} characters; the gate needs 1 to 200`);
   }
+  if (/[\r\n]/.test(CONFESSION)) {
+    throw new Error("confession must be a single line");
+  }
   const dir = outDir();
   mkdirSync(dir, { recursive: true });
   const target = join(dir, "entry.txt");
   writeFileSync(target, CONFESSION, "utf8");
   // Read the file back and confirm exactly what was written, so a silent
   // or partial write can never pass as a valid entry.
-  if (readFileSync(target, "utf8") !== CONFESSION) {
+  const written = readFileSync(target);
+  if (written.toString("utf8") !== CONFESSION) {
     throw new Error("entry.txt does not match the confession exactly");
+  }
+  if (written.length !== Buffer.byteLength(CONFESSION, "utf8")) {
+    throw new Error("entry.txt byte length does not match the confession");
   }
 }
 
